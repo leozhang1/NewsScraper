@@ -8,9 +8,8 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
 
 
-
 # region getNewsAsDataFrame
-def getNewsAsDataFrame(category='business'):
+def getNewsAsDataFrame(category=''):
     url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={Credentials.newsapiKey}'
     newsJson = requests.get(url).json()
     articles = newsJson['articles']
@@ -22,20 +21,7 @@ def getNewsAsDataFrame(category='business'):
     return pd.DataFrame({'TITLE': titles, 'URL': urls})
 # endregion
 
-# region write to xlsx
-def writeNewsToFile(titles=[], urls=[]):
-    # region csv code
-    # with open(f'./CSVs/{category}_category_news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx', 'a', encoding='UTF8', newline='') as f:
-    #     w = csv.writer(f)
-    #     w.writerow(['TITLE','.', 'URL'])
-    #     for title,url in newsLst:
-    #         w.writerow((title,'.',url))
-    # endregion
-    # convert to pandas df
-    pass
-# endregion
-
-
+#region addHyperlinks
 def addHyperlinks(filename):
     wb = load_workbook(filename)
     # go thru all sheets and apply hyperlink formula to every row in column B
@@ -55,8 +41,9 @@ def addHyperlinks(filename):
             ws.cell(
                 row=x, column=3).value = f"=HYPERLINK({get_column_letter(2)}{x},{get_column_letter(1)}{x})"
     wb.save(filename)
+#endregion
 
-
+#region processToExcelFile
 def processToExcelFile() -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
@@ -75,6 +62,8 @@ def processToExcelFile() -> str:
     xlw.close()
     return filename
 
+#endregion
+
 
 if __name__ == '__main__':
     pass
@@ -82,6 +71,98 @@ if __name__ == '__main__':
     addHyperlinks(filename)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# region write to csv
+# def writeNewsToFile(titles=[], urls=[]):
+    # region csv code
+    # with open(f'./CSVs/{category}_category_news_{time.strftime("%Y%m%d-%H%M%S")}.csv', 'a', encoding='UTF8', newline='') as f:
+    #     w = csv.writer(f)
+    #     w.writerow(['TITLE','.', 'URL'])
+    #     for title,url in newsLst:
+    #         w.writerow((title,'.',url))
+    # endregion
+    # convert to pandas df
+#     pass
+# endregion
 
 # region tkinter code
 # ? window config
