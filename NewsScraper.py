@@ -21,7 +21,9 @@ def getNewsAsDataFrame(category=''):
     return pd.DataFrame({'TITLE': titles, 'URL': urls})
 # endregion
 
-#region addHyperlinks
+# region addHyperlinks
+
+
 def addHyperlinks(filename):
     wb = load_workbook(filename)
     # go thru all sheets and apply hyperlink formula to every row in column B
@@ -41,17 +43,20 @@ def addHyperlinks(filename):
             ws.cell(
                 row=x, column=3).value = f"=HYPERLINK({get_column_letter(2)}{x},{get_column_letter(1)}{x})"
     wb.save(filename)
-#endregion
+# endregion
 
-#region processToExcelFile
+# region processToExcelFile
+
+
 def processToExcelFile() -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
                           'general', 'health', 'science', 'sports', 'technology']
     dfs = []
-    if not os.path.isdir("./files"):
-        os.mkdir('./files')
-    filename = f'./files/news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
+    # didn't use relative path (such as ./files because this path is global on the computer and would maintain correctness of desired file storing locations regardless of who is running this file, whether that's running this script directly or running this script via another python script)
+    if not os.path.isdir("C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files"):
+        os.mkdir('C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files')
+    filename = f'C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files\\news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
     xlw = pd.ExcelWriter(filename)
     for category in possibleCategories:
         dfs.append(getNewsAsDataFrame(category))
@@ -62,93 +67,14 @@ def processToExcelFile() -> str:
     xlw.close()
     return filename
 
-#endregion
+# endregion
 
 
 if __name__ == '__main__':
     pass
     filename = processToExcelFile()
     addHyperlinks(filename)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    print('done')
 
 
 # region write to csv
