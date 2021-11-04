@@ -48,15 +48,16 @@ def addHyperlinks(filename):
 # region processToExcelFile
 
 
-def processToExcelFile() -> str:
+def processToExcelFile(relativeFilePath=True) -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
                           'general', 'health', 'science', 'sports', 'technology']
     dfs = []
+    filePath = './files/' if relativeFilePath else Credentials.outputFilePath
     # didn't use relative path (such as ./files because this path is global on the computer and would maintain correctness of desired file storing locations regardless of who is running this file, whether that's running this script directly or running this script via another python script)
-    if not os.path.isdir("C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files"):
-        os.mkdir('C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files')
-    filename = f'C:\\Users\\Leo Zhang\\Documents\\GitHub\\NewsScraper\\files\\news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
+    if not os.path.isdir(filePath):
+        os.mkdir(filePath)
+    filename = f'{filePath}news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
     xlw = pd.ExcelWriter(filename)
     for category in possibleCategories:
         dfs.append(getNewsAsDataFrame(category))
