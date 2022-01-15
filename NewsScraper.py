@@ -2,7 +2,7 @@ import pandas as pd
 import time
 import os
 import requests
-from secrets import Credentials
+from secrets import Secrets
 from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
@@ -10,7 +10,7 @@ from openpyxl.styles import Font
 
 # region getNewsAsDataFrame
 def getNewsAsDataFrame(category=''):
-    url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={Credentials.newsapiKey}'
+    url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={Secrets.newsapiKey}'
     newsJson = requests.get(url).json()
     articles = newsJson['articles']
     titles = []
@@ -22,7 +22,6 @@ def getNewsAsDataFrame(category=''):
 # endregion
 
 # region addHyperlinks
-
 
 def addHyperlinks(filename):
     wb = load_workbook(filename)
@@ -47,18 +46,18 @@ def addHyperlinks(filename):
 
 # region processToExcelFile
 
-
 def processToExcelFile(relativeFilePath=True) -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
                           'general', 'health', 'science', 'sports', 'technology']
     dfs = []
-    filePath = './files/' if relativeFilePath else Credentials.outputFilePath
+    filePath = './files/' if relativeFilePath else Secrets.outputFilePath
     # didn't use relative path (such as ./files because this path is global on the computer and would maintain correctness of desired file storing locations regardless of who is running this file, whether that's running this script directly or running this script via another python script)
     if not os.path.isdir(filePath):
         os.mkdir(filePath)
-    filename = f'{filePath}news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
-    xlw = pd.ExcelWriter(filename)
+    fileName = f'news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
+    filePathComplete = f'{filePath}{fileName}'
+    xlw = pd.ExcelWriter(filePathComplete)
     for category in possibleCategories:
         dfs.append(getNewsAsDataFrame(category))
     # print(os.listdir('./CSVs'))
@@ -66,16 +65,15 @@ def processToExcelFile(relativeFilePath=True) -> str:
     for i, df in enumerate(dfs):
         df.to_excel(xlw, sheet_name=possibleCategories[i], index=False)
     xlw.close()
-    return filename
+    return filePath, fileName
 
 # endregion
 
 
 if __name__ == '__main__':
-    pass
-    filename = processToExcelFile()
-    addHyperlinks(filename)
-    print('done')
+    filePath, fileName = processToExcelFile(relativeFilePath=False)
+    addHyperlinks(f'{filePath}{fileName}')
+    Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 # region write to csv
