@@ -69,11 +69,17 @@ def processToExcelFile(relativeFilePath=True) -> str:
 
 # endregion
 
-
-if __name__ == '__main__':
+def main(shouldDeleteFile=False):
     filePath, fileName = processToExcelFile(relativeFilePath=False)
     addHyperlinks(f'{filePath}{fileName}')
     Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+    if shouldDeleteFile and os.path.isfile(filePath+fileName):
+        os.remove(filePath+fileName)
+
+
+if __name__ == '__main__':
+    main(shouldDeleteFile=True)
 
 
 # region write to csv
