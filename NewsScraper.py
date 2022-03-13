@@ -8,7 +8,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
 
 
-# region getNewsAsDataFrame
+
 def getNewsAsDataFrame(category=''):
     url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={Secrets.newsapiKey}'
     newsJson = requests.get(url).json()
@@ -19,9 +19,6 @@ def getNewsAsDataFrame(category=''):
         titles.append(article['title'])
         urls.append(article['url'])
     return pd.DataFrame({'TITLE': titles, 'URL': urls})
-# endregion
-
-# region addHyperlinks
 
 def addHyperlinks(filename):
     wb = load_workbook(filename)
@@ -42,9 +39,6 @@ def addHyperlinks(filename):
             ws.cell(
                 row=x, column=3).value = f"=HYPERLINK({get_column_letter(2)}{x},{get_column_letter(1)}{x})"
     wb.save(filename)
-# endregion
-
-# region processToExcelFile
 
 def processToExcelFile(relativeFilePath=True) -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
@@ -67,7 +61,6 @@ def processToExcelFile(relativeFilePath=True) -> str:
     xlw.close()
     return filePath, fileName
 
-# endregion
 
 def main(shouldDeleteFile=False):
     filePath, fileName = processToExcelFile(relativeFilePath=False)
