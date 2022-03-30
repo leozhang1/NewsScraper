@@ -9,6 +9,7 @@ from openpyxl.styles import Font
 
 
 
+
 def getNewsAsDataFrame(category=''):
     url = f'https://newsapi.org/v2/top-headlines?country=us&category={category}&apiKey={Secrets.newsapiKey}'
     newsJson = requests.get(url).json()
@@ -63,6 +64,18 @@ def processToExcelFile(relativeFilePath=True) -> str:
 
 
 def main(shouldDeleteFile=False):
+    lastDate = ''
+    if not os.path.isfile(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt'):
+        with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
+            f.write('')
+    with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'r') as f:
+        lastDate = f.read()
+        if lastDate == time.strftime("%Y-%m-%d"):
+            print('already ran this')
+            return
+    with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
+        f.write(time.strftime("%Y-%m-%d"))
+
     filePath, fileName = processToExcelFile(relativeFilePath=False)
     addHyperlinks(f'{filePath}{fileName}')
     Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
