@@ -70,6 +70,20 @@ def processToExcelFile(relativeFilePath=True) -> str:
 # endregion
 
 def main(shouldDeleteFile=False):
+    lastDate = ''
+    if not os.path.isfile(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt'):
+        print('creating file')
+        with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
+            f.write('')
+    with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'r') as f:
+        lastDate = f.read()
+        if lastDate == time.strftime("%Y-%m-%d"):
+            print('already ran this')
+            return
+    with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
+        f.write(time.strftime("%Y-%m-%d"))
+
+
     filePath, fileName = processToExcelFile(relativeFilePath=False)
     addHyperlinks(f'{filePath}{fileName}')
     Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -79,7 +93,7 @@ def main(shouldDeleteFile=False):
 
 
 if __name__ == '__main__':
-    main(shouldDeleteFile=True)
+    main(shouldDeleteFile=False)
 
 
 # region write to csv
