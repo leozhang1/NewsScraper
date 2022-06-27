@@ -7,6 +7,8 @@ from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Font
 
+import concurrent.futures
+
 
 
 def getNewsAsDataFrame(category=''):
@@ -19,9 +21,6 @@ def getNewsAsDataFrame(category=''):
         titles.append(article['title'])
         urls.append(article['url'])
     return pd.DataFrame({'TITLE': titles, 'URL': urls})
-
-
-
 
 def addHyperlinks(filename):
     wb = load_workbook(filename)
@@ -43,9 +42,6 @@ def addHyperlinks(filename):
                 row=x, column=3).value = f"=HYPERLINK({get_column_letter(2)}{x},{get_column_letter(1)}{x})"
     wb.save(filename)
 
-
-
-
 def processToExcelFile(relativeFilePath=True) -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
@@ -57,19 +53,19 @@ def processToExcelFile(relativeFilePath=True) -> str:
         os.mkdir(filePath)
     fileName = f'news_{time.strftime("%Y%m%d-%H%M%S")}.xlsx'
     filePathComplete = f'{filePath}{fileName}'
-    for category in possibleCategories:
-        res = getNewsAsDataFrame(category)
-        dfs.append(res)
-    print(dfs)
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        res = executor.map(getNewsAsDataFrame, possibleCategories)
+        print(list(res))
+
     # xlw = pd.ExcelWriter(filePathComplete)
-    # # print(os.listdir('./CSVs'))
-    # # merge them into one excel file separated into different sheets
+    # for category in possibleCategories:
+    #     dfs.append(getNewsAsDataFrame(category))
+    # print(os.listdir('./CSVs'))
+    # merge them into one excel file separated into different sheets
     # for i, df in enumerate(dfs):
     #     df.to_excel(xlw, sheet_name=possibleCategories[i], index=False)
     # xlw.close()
     return filePath, fileName
-
-
 
 def main(shouldDeleteFile=False):
     # lastDate = ''
@@ -89,6 +85,7 @@ def main(shouldDeleteFile=False):
     filePath, fileName = processToExcelFile(relativeFilePath=False)
     # addHyperlinks(f'{filePath}{fileName}')
 
+    # Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
     if shouldDeleteFile and os.path.isfile(filePath+fileName):
         os.remove(filePath+fileName)
