@@ -1,14 +1,13 @@
-import pandas as pd
-import time
-import os
-import requests
-from secrets import Secrets
-from openpyxl import load_workbook
-from openpyxl.utils import get_column_letter
-from openpyxl.styles import Font
-
 import concurrent.futures
+import os
+import time
+from secrets import Secrets
 
+import pandas as pd
+import requests
+from openpyxl import load_workbook
+from openpyxl.styles import Font
+from openpyxl.utils import get_column_letter
 
 
 def getNewsAsDataFrame(category=''):
@@ -42,12 +41,12 @@ def addHyperlinks(filename):
                 row=x, column=3).value = f"=HYPERLINK({get_column_letter(2)}{x},{get_column_letter(1)}{x})"
     wb.save(filename)
 
-def processToExcelFile(relativeFilePath=True) -> str:
+def processToExcelFile() -> str:
     # https://newsapi.org/docs/endpoints/top-headlines
     possibleCategories = ['business', 'entertainment',
                           'general', 'health', 'science', 'sports', 'technology']
     dfs = []
-    filePath = './files/' if relativeFilePath else Secrets.outputFilePath
+    filePath = f'{os.getcwd()}/files/'
     # didn't use relative path (such as ./files because this path is global on the computer and would maintain correctness of desired file storing locations regardless of who is running this file, whether that's running this script directly or running this script via another python script)
     if not os.path.isdir(filePath):
         os.mkdir(filePath)
@@ -55,43 +54,44 @@ def processToExcelFile(relativeFilePath=True) -> str:
     filePathComplete = f'{filePath}{fileName}'
     with concurrent.futures.ThreadPoolExecutor() as executor:
         res = executor.map(getNewsAsDataFrame, possibleCategories)
-        print(list(res))
+        # print(list(res))
+        dfs.extend(list(res))
 
-    # xlw = pd.ExcelWriter(filePathComplete)
+    xlw = pd.ExcelWriter(filePathComplete)
     # for category in possibleCategories:
     #     dfs.append(getNewsAsDataFrame(category))
     # print(os.listdir('./CSVs'))
     # merge them into one excel file separated into different sheets
-    # for i, df in enumerate(dfs):
-    #     df.to_excel(xlw, sheet_name=possibleCategories[i], index=False)
-    # xlw.close()
+    for i, df in enumerate(dfs):
+        df.to_excel(xlw, sheet_name=possibleCategories[i], index=False)
+    xlw.close()
     return filePath, fileName
 
 def main(shouldDeleteFile=False):
-    # lastDate = ''
-    # if not os.path.isfile(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt'):
-    #     print('creating file')
-    #     with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
-    #         f.write('')
-    # with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'r') as f:
-    #     lastDate = f.read()
-    #     if lastDate == time.strftime("%Y-%m-%d"):
-    #         print('already ran this')
-    #         return
-    # with open(f'{Secrets.TIMESTAMP_FILEPATH}time_stamp.txt', 'w') as f:
-    #     f.write(time.strftime("%Y-%m-%d"))
+    lastDate = ''
+    if not os.path.isfile(f'{os.getcwd()}/time_stamp.txt'):
+        print('creating file')
+        with open(f'{os.getcwd()}/time_stamp.txt', 'w') as f:
+            f.write('')
+    with open(f'{os.getcwd()}/time_stamp.txt', 'r') as f:
+        lastDate = f.read()
+        if lastDate == time.strftime("%Y-%m-%d"):
+            print('already ran this')
+            return
+    with open(f'{os.getcwd()}/time_stamp.txt', 'w') as f:
+        f.write(time.strftime("%Y-%m-%d"))
 
 
-    filePath, fileName = processToExcelFile(relativeFilePath=False)
-    # addHyperlinks(f'{filePath}{fileName}')
-
-    # Secrets.sendEmail(filePath+fileName, fileName, Secrets.EmailCredentials(sender=Secrets.senderEmail, password=Secrets.senderEmailPassword, recipients=Secrets.receiverEmails), "News!", "Check out the news for today!", subtype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    filePath, fileName = processToExcelFile()
+    addHyperlinks(f'{filePath}{fileName}')
 
     if shouldDeleteFile and os.path.isfile(filePath+fileName):
         os.remove(filePath+fileName)
 
 
 if __name__ == '__main__':
+    os.chdir(os.path.dirname(__file__))
+    # print(os.getcwd())
     main(shouldDeleteFile=False)
 
 
